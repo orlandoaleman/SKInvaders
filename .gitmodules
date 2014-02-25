@@ -1,0 +1,3 @@
+[submodule "External/UIImage+Extras"]
+	path = External/UIImage+Extras
+	url = https://github.com/orlandoaleman/UIImage-Extras.git
