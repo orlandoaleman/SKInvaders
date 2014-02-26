@@ -2,13 +2,14 @@
 //  GameScene.m
 //  SKInvaders
 //
-//  Copyright (c) 2013 RepublicOfApps, LLC. All rights reserved.
+
 //
 
 #import "GameScene.h"
 #import <CoreMotion/CoreMotion.h>
 #import "UIImage+Extras.h"
 #import "GameOverScene.h"
+#import "YouWinScene.h"
 
 
 #pragma mark - Custom Type Definitions
@@ -46,28 +47,35 @@ typedef enum BulletType {
 
 #pragma mark - Constant Definitions
 
-#define kInvaderSize            CGSizeMake(24, 16)
-#define kInvaderName            @"invader"
-#define kInvaderGridSpacing     CGSizeMake(12, 12)
-#define kInvaderRowCount        20
-#define kInvaderColCount        6
-#define kInvaderSpeedReduction  0.9f
-#define kMinTimePerMove         0.1f
-#define kMaxTimePerMove         1.f
-#define kInvaderStrategy        InvaderStrategyMotion
+#define kInvaderSize                    CGSizeMake(24, 16)
+#define kInvaderName                    @"invader"
+#define kInvaderGridSpacing             CGSizeMake(12, 12)
+#define kInvaderRowCountDefault         6
+#define kInvaderColCount                6
+#define kInvaderMinTimePerMove          0.1f
+#define kInvaderMaxTimePerMove          1.f
+#define kInvaderReductionOfTime         0.9f
+#define kInvaderMinBulletTime           1.0f
+#define kInvaderMaxBulletTime           2.0f
+#define kInvaderReductionOfBulletTime   0.95f
+#define kInvaderBulletTimeAdjustmentInterval 20
+#define kInvaderStrategy                InvaderStrategyMotion
 
-#define kShipSize               CGSizeMake(30, 16)
-#define kShipName               @"ship"
-#define kShipSize               CGSizeMake(30, 16)
-#define kShipBurstCapacity      3
+#define kShipSize                       CGSizeMake(30, 16)
+#define kShipName                       @"ship"
+#define kShipSize                       CGSizeMake(30, 16)
+#define kShipBurstCapacity              3
+#define kShipMaxHealth                  1.0f
 
-#define kBulletSize             CGSizeMake(4, 8)
-#define kShipFiredBulletName    @"shipFiredBullet"
-#define kInvaderFiredBulletName @"invaderFiredBullet"
+#define kBulletSize                     CGSizeMake(4, 8)
+#define kShipFiredBulletName            @"shipFiredBullet"
+#define kInvaderFiredBulletName         @"invaderFiredBullet"
 
 
-#define kScoreHudName           @"scoreHud"
-#define kHealthHudName          @"healthHud"
+#define kScoreHudName                   @"scoreHud"
+#define kHealthHudName                  @"healthHud"
+#define kHealthHudText                  @"Health: %.1f%%"
+#define kScoreHudText                   @"Score: %05u"
 
 
 #define kMinInvaderBottomHeight 2*kShipSize.height // defines the height at which the invaders are considered to have invaded Earth
@@ -90,17 +98,41 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 @property NSMutableArray *contactQueue;
 @property NSTimeInterval timePerMove;
 @property NSTimeInterval timeOfLastMove;
+@property NSTimeInterval timeOfLastInvaderBullet;
+@property CGFloat timeOfInvaderBullet;
 @property InvaderMovementDirection invaderMovementDirection;
 @property NSUInteger burstSize;
 @property InvaderStrategy invaderStrategy;
-@property NSUInteger score;
-@property CGFloat shipHealth;
+@property NSUInteger earlierScore;
 @end
 
 
 
 @implementation GameScene
 
+#pragma mark - Object Lifecycle Management
+
+- (id)initWithSize:(CGSize)size
+{
+    if (self = [super initWithSize:size]) {
+        NSLog(@"Scene Size: %@", NSStringFromCGSize(size));
+        
+        _tapQueue = [NSMutableArray array];
+        _contactQueue = [NSMutableArray array];
+        
+        _invaderMovementDirection = InvaderMovementDirectionRight;
+        _timePerMove = kInvaderMaxTimePerMove;
+        _timeOfLastMove = 0.f;
+        _timeOfLastInvaderBullet = 0.f;
+        _timeOfInvaderBullet = kInvaderMaxBulletTime;
+        _burstSize = kShipBurstCapacity;
+        _invaderStrategy = kInvaderStrategy;
+        _numberOfInvaderRows = kInvaderRowCountDefault;
+        _shipHealth = kShipMaxHealth;
+    }
+    
+    return self;
+}
 
 #pragma mark - Scene Setup and Content Creation
 
@@ -108,6 +140,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 {
     if (!self.contentCreated) {
         [self createContent];
+        self.earlierScore = self.score;
         self.contentCreated = YES;
 
         self.motionManager = [[CMMotionManager alloc] init];
@@ -118,18 +151,8 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 
 - (void)createContent
 {
-    self.invaderMovementDirection = InvaderMovementDirectionRight;
-    self.timePerMove = kMaxTimePerMove;
-    self.timeOfLastMove = 0.0;
-    self.burstSize = kShipBurstCapacity;
-    self.invaderStrategy = kInvaderStrategy;
-    
-    self.tapQueue = [NSMutableArray array];
-    self.contactQueue = [NSMutableArray array];
     self.userInteractionEnabled = YES;
-
     self.physicsWorld.contactDelegate = self;
-
     self.physicsBody = [SKPhysicsBody bodyWithEdgeLoopFromRect:self.frame];
     self.physicsBody.categoryBitMask = kSceneEdgeCategory;
 
@@ -143,7 +166,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 {
     CGPoint baseOrigin = CGPointMake(kInvaderSize.width / 2, 180);
 
-    for (NSUInteger row = 0; row < kInvaderRowCount; ++row) {
+    for (NSUInteger row = 0; row < self.numberOfInvaderRows; ++row) {
         InvaderType invaderType;
 
         if (row % 3 == 0) invaderType = InvaderTypeA;
@@ -209,6 +232,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
     invader.physicsBody.contactTestBitMask = 0x0;
     invader.physicsBody.collisionBitMask = 0x0;
     invader.physicsBody.restitution = 0.0;
+    
     return invader;
 }
 
@@ -216,9 +240,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 - (void)setupShip
 {
     SKNode *ship = [self makeShip];
-
     ship.position = CGPointMake(self.size.width / 2.0f, kShipSize.height / 2.0f);
-    self.shipHealth = 1.0f;
     [self addChild:ship];
 }
 
@@ -249,7 +271,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
     scoreLabel.name = kScoreHudName;
     scoreLabel.fontSize = 15;
     scoreLabel.fontColor = [SKColor greenColor];
-    scoreLabel.text = [NSString stringWithFormat:@"Score: %04u", 0];
+    scoreLabel.text = [NSString stringWithFormat:kScoreHudText, self.score];
     scoreLabel.position = CGPointMake(20 + scoreLabel.frame.size.width / 2, self.size.height - (20 + scoreLabel.frame.size.height / 2));
     [self addChild:scoreLabel];
 
@@ -257,7 +279,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
     healthLabel.name = kHealthHudName;
     healthLabel.fontSize = 15;
     healthLabel.fontColor = [SKColor redColor];
-    healthLabel.text = [NSString stringWithFormat:@"Health: %.1f%%", self.shipHealth * 100.0f];
+    healthLabel.text = [NSString stringWithFormat:kHealthHudText, self.shipHealth * 100.0f];
     healthLabel.position = CGPointMake(self.size.width - healthLabel.frame.size.width / 2 - 20, self.size.height - (20 + healthLabel.frame.size.height / 2));
     [self addChild:healthLabel];
 }
@@ -304,7 +326,14 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 
 - (void)update:(NSTimeInterval)currentTime
 {
-    if ([self isGameOver]) [self endGame];
+    if ([self isGameOver]) {
+        [self endGameWinning:false];
+        return;
+    }
+    else if ([self isGameWin]) {
+        [self endGameWinning:true];
+        return;
+    }
     
     [self moveInvadersForUpdate:currentTime];
     [self processUserMotionForUpdate:currentTime];
@@ -404,13 +433,13 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 
             case InvaderMovementDirectionDownThenLeft:
                 proposedMovementDirection = InvaderMovementDirectionLeft;
-                [self adjustInvaderMovementToTimePerMove:self.timePerMove * kInvaderSpeedReduction];
+                [self adjustInvaderMovementToTimePerMove];
                 *stop = YES;
                 break;
                 
             case InvaderMovementDirectionDownThenRight:
                 proposedMovementDirection = InvaderMovementDirectionRight;
-                [self adjustInvaderMovementToTimePerMove:self.timePerMove * kInvaderSpeedReduction];
+                [self adjustInvaderMovementToTimePerMove];
                 *stop = YES;
                 break;
                 
@@ -425,10 +454,10 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 }
 
 
-- (void)adjustInvaderMovementToTimePerMove:(NSTimeInterval)newTimePerMove
+- (void)adjustInvaderMovementToTimePerMove
 {
-    if (newTimePerMove <= 0) return;
-    if (newTimePerMove < kMinTimePerMove) return;
+    NSTimeInterval newTimePerMove = self.timePerMove * kInvaderReductionOfTime;
+    if (newTimePerMove < kInvaderMinTimePerMove) return;
     
     double ratio = self.timePerMove / newTimePerMove;
     self.timePerMove = newTimePerMove;
@@ -476,7 +505,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
     if (!existingBullet) {
         NSMutableArray *allInvaders = [NSMutableArray array];
         [self enumerateChildNodesWithName:kInvaderName usingBlock: ^(SKNode *node, BOOL *stop) {
-            if (CGRectContainsPoint(self.view.frame, node.position)) {
+            if (CGRectContainsPoint(self.frame, node.position)) {
                 [allInvaders addObject:node];
             }
         }];
@@ -489,8 +518,9 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
             bullet.position = CGPointMake(invader.position.x, invader.position.y - invader.frame.size.height / 2 + bullet.frame.size.height / 2);
 
             CGPoint bulletDestination = CGPointMake(invader.position.x, -bullet.frame.size.height / 2);
-
-            [self fireBullet:bullet toDestination:bulletDestination withDuration:2.0 soundFileName:@"InvaderBullet.wav"];
+            
+            [self adjustInvaderBulletTimeWithCurrentTime:currentTime];
+            [self fireBullet:bullet toDestination:bulletDestination withDuration:self.timeOfInvaderBullet soundFileName:@"InvaderBullet.wav"];
         }
     }
 }
@@ -532,7 +562,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
             {
                 __block CGFloat minDistanceX = CGFLOAT_MAX;
                 __block CGFloat minDistanceY = CGFLOAT_MAX;
-                __block CGPoint target = CGPointMake(ship.position.x + ship.physicsBody.velocity.dx, ship.position.y);                
+                __block CGPoint target = CGPointMake(ship.position.x + ship.physicsBody.velocity.dx, ship.position.y);
                 
                 [allInvaders enumerateObjectsUsingBlock:^(SKNode *invader, NSUInteger idx, BOOL *stop) {
                     CGFloat distanceX = fabs(invader.position.x - target.x);
@@ -571,6 +601,18 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 }
 
 
+- (void)adjustInvaderBulletTimeWithCurrentTime:(NSTimeInterval)currentTime
+{
+    NSTimeInterval newTime = self.timeOfInvaderBullet*kInvaderReductionOfBulletTime;
+
+    if (newTime < kInvaderMinTimePerMove) return;
+    if (currentTime - self.timeOfLastInvaderBullet < kInvaderBulletTimeAdjustmentInterval) return;
+    
+    self.timeOfLastInvaderBullet = currentTime;
+    self.timeOfInvaderBullet = newTime;
+}
+
+
 #pragma mark - User Tap Helpers
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -604,7 +646,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 {
     self.score += points;
     SKLabelNode *score = (SKLabelNode *)[self childNodeWithName:kScoreHudName];
-    score.text = [NSString stringWithFormat:@"Score: %04u", self.score];
+    score.text = [NSString stringWithFormat:kScoreHudText, self.score];
 }
 
 
@@ -612,7 +654,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 {
     self.shipHealth = MAX(self.shipHealth + healthAdjustment, 0);
     SKLabelNode *health = (SKLabelNode *)[self childNodeWithName:kHealthHudName];
-    health.text = [NSString stringWithFormat:@"Health: %.1f%%", self.shipHealth * 100];
+    health.text = [NSString stringWithFormat:kHealthHudText, self.shipHealth * 100];
 }
 
 
@@ -652,7 +694,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
         if ([contact.bodyA.node.name isEqualToString:kInvaderName]) {node = contact.bodyA.node; }
         else node = contact.bodyB.node;
 
-        if (CGRectContainsPoint(self.view.frame, node.position)) {
+        if (CGRectContainsPoint(self.frame, node.position)) {
             [self runAction:[SKAction playSoundFileNamed:@"InvaderHit.wav" waitForCompletion:NO]];
             [contact.bodyA.node removeFromParent];
             [contact.bodyB.node removeFromParent];
@@ -667,8 +709,6 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 
 - (BOOL)isGameOver
 {
-    SKNode *invader = [self childNodeWithName:kInvaderName];
-
     __block BOOL invaderTooLow = NO;
 
     [self enumerateChildNodesWithName:kInvaderName usingBlock: ^(SKNode *node, BOOL *stop) {
@@ -679,19 +719,34 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
     }];
 
     SKNode *ship = [self childNodeWithName:kShipName];
-    return !invader || invaderTooLow || !ship;
+    return invaderTooLow || !ship;
 }
 
 
-- (void)endGame
+- (BOOL)isGameWin
+{
+    SKNode *invader = [self childNodeWithName:kInvaderName];
+    SKNode *ship = [self childNodeWithName:kShipName];
+    return !invader && ship && self.score > 0;
+}
+
+
+
+- (void)endGameWinning:(BOOL)winning
 {
     if (!self.gameEnding) {
         self.gameEnding = YES;
 
         [self.motionManager stopAccelerometerUpdates];
-
-        GameOverScene *gameOverScene = [[GameOverScene alloc] initWithSize:self.size];
-        [self.view presentScene:gameOverScene transition:[SKTransition doorsOpenHorizontalWithDuration:1.0]];
+        
+        SKScene *scene = winning ? [[YouWinScene alloc] initWithSize:self.size] : [[GameOverScene alloc] initWithSize:self.size];
+        scene.userData = [NSMutableDictionary dictionary];
+        scene.userData[@"score"] = @(self.score);
+        scene.userData[@"earlierScore"] = @(self.earlierScore);
+        scene.userData[@"shipHealth"] = @(self.shipHealth);
+        scene.userData[@"numberOfInvaderRows"] = @(self.numberOfInvaderRows);
+        
+        [self.view presentScene:scene transition:[SKTransition doorsOpenHorizontalWithDuration:1.0]];
     }
 }
 
@@ -726,8 +781,7 @@ static inline float rwLength(CGPoint a)
 // Makes a vector have a length of 1
 static inline CGPoint rwNormalize(CGPoint a)
 {
-    float length = rwLength(a);
-    
+    float length = rwLength(a);    
     return CGPointMake(a.x / length, a.y / length);
 }
 

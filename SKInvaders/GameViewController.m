@@ -3,7 +3,7 @@
 //  SKInvaders
 //
 
-//  Copyright (c) 2013 RepublicOfApps, LLC. All rights reserved.
+
 //
 
 #import "GameViewController.h"
@@ -31,8 +31,9 @@
     skView.showsNodeCount = NO;
 
     // Create and configure the scene.
-    SKScene *scene = [GameScene sceneWithSize:skView.bounds.size];
+    GameScene *scene = [GameScene sceneWithSize:skView.bounds.size];
     scene.scaleMode = SKSceneScaleModeAspectFill;
+    scene.numberOfInvaderRows = 1;
 
     // Present the scene.
     [skView presentScene:scene];

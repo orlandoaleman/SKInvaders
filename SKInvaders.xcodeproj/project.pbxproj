@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		554161D818BE342700F38289 /* YouWinScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 554161D718BE342700F38289 /* YouWinScene.m */; };
 		557DDE0E18BCE2E8001AE076 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 557DDE0518BCE2E8001AE076 /* README.md */; };
 		557DDE0F18BCE2E8001AE076 /* UIImage+AlphaAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 557DDE0718BCE2E8001AE076 /* UIImage+AlphaAdditions.m */; };
 		557DDE1018BCE2E8001AE076 /* UIImage+Extras.m in Sources */ = {isa = PBXBuildFile; fileRef = 557DDE0918BCE2E8001AE076 /* UIImage+Extras.m */; };
@@ -62,6 +63,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		554161D718BE342700F38289 /* YouWinScene.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = YouWinScene.m; sourceTree = "<group>"; };
+		554161D918BE343400F38289 /* YouWinScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = YouWinScene.h; sourceTree = "<group>"; };
 		557DDE0518BCE2E8001AE076 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
 		557DDE0618BCE2E8001AE076 /* UIImage+AlphaAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+AlphaAdditions.h"; sourceTree = "<group>"; };
 		557DDE0718BCE2E8001AE076 /* UIImage+AlphaAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+AlphaAdditions.m"; sourceTree = "<group>"; };
@@ -213,6 +216,8 @@
 				6AD4643817DE8BB800C19E75 /* GameScene.m */,
 				6A4B80E617E02A45002A234F /* GameOverScene.h */,
 				6A4B80E717E02A45002A234F /* GameOverScene.m */,
+				554161D918BE343400F38289 /* YouWinScene.h */,
+				554161D718BE342700F38289 /* YouWinScene.m */,
 				6AD4643C17DE8BB800C19E75 /* Images.xcassets */,
 				6AD4642617DE8BB800C19E75 /* Supporting Files */,
 			);
@@ -401,6 +406,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				557DDE0F18BCE2E8001AE076 /* UIImage+AlphaAdditions.m in Sources */,
+				554161D818BE342700F38289 /* YouWinScene.m in Sources */,
 				557DDE1118BCE2E8001AE076 /* UIImage+ResizeAdditions.m in Sources */,
 				6A4B80E817E02A45002A234F /* GameOverScene.m in Sources */,
 				557DDE1218BCE2E8001AE076 /* UIImage+RoundedCornerAdditions.m in Sources */,

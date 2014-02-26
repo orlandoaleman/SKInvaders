@@ -1,5 +1,5 @@
 //
-//  GameOverScene.h
+//  YouWinScene
 //  SKInvaders
 //
 
@@ -8,6 +8,6 @@
 
 #import <SpriteKit/SpriteKit.h>
 
-@interface GameOverScene : SKScene
+@interface YouWinScene : SKScene
 
 @end

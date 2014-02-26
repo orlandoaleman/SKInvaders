@@ -1,19 +1,18 @@
 //
-//  GameOverScene.m
+//  YouWinScene
 //  SpaceInvadersTraditional
 //
-
-
 //
 
-#import "GameOverScene.h"
+#import "YouWinScene.h"
 #import "GameScene.h"
 
-@interface GameOverScene ()
+
+@interface YouWinScene ()
 @property BOOL contentCreated;
 @end
 
-@implementation GameOverScene
+@implementation YouWinScene
 
 - (void)didMoveToView:(SKView *)view
 {
@@ -23,27 +22,26 @@
     }
 }
 
-
 - (void)createContent
 {
-    SKLabelNode *gameOverLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
-    gameOverLabel.fontSize = 50;
-    gameOverLabel.fontColor = [SKColor whiteColor];
-    gameOverLabel.text = @"Game Over!";
-    gameOverLabel.position = CGPointMake(self.size.width / 2, 2.0 / 3.0 * self.size.height);
-    [self addChild:gameOverLabel];
+    SKLabelNode *youWinLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
+    youWinLabel.fontSize = 50;
+    youWinLabel.fontColor = [SKColor whiteColor];
+    youWinLabel.text = @"You Win!";
+    youWinLabel.position = CGPointMake(self.size.width / 2, 2.0 / 3.0 * self.size.height);
+    [self addChild:youWinLabel];
     
     SKLabelNode *scoreLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
     scoreLabel.fontSize = 18;
     scoreLabel.fontColor = [SKColor whiteColor];
     scoreLabel.text = [NSString stringWithFormat:@"Score: %05u", [self.userData[@"score"] unsignedIntegerValue]];
-    scoreLabel.position = CGPointMake(self.size.width / 2, gameOverLabel.frame.origin.y - gameOverLabel.frame.size.height - 10);
-    [self addChild:scoreLabel];    
+    scoreLabel.position = CGPointMake(self.size.width / 2, youWinLabel.frame.origin.y - youWinLabel.frame.size.height - 10);
+    [self addChild:scoreLabel];
 
     SKLabelNode *tapLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
     tapLabel.fontSize = 25;
     tapLabel.fontColor = [SKColor whiteColor];
-    tapLabel.text = @"(Tap to Play Again)";
+    tapLabel.text = [NSString stringWithFormat:@"(Tap to Play Level %i)", [self.userData[@"numberOfInvaderRows"] integerValue] + 1];
     tapLabel.position = CGPointMake(self.size.width / 2, scoreLabel.frame.origin.y - scoreLabel.frame.size.height - 40);
     [self addChild:tapLabel];
 }
@@ -71,10 +69,10 @@
 {
     GameScene *gameScene = [[GameScene alloc] initWithSize:self.size];
     gameScene.scaleMode = SKSceneScaleModeAspectFill;
-    gameScene.numberOfInvaderRows = [self.userData[@"numberOfInvaderRows"] unsignedIntegerValue];
-    gameScene.shipHealth = 1.f;
-    gameScene.score = [self.userData[@"earlierScore"] unsignedIntegerValue];
-    [self.view presentScene:gameScene transition :[SKTransition doorsCloseHorizontalWithDuration:1.0]];
+    gameScene.numberOfInvaderRows = [self.userData[@"numberOfInvaderRows"] unsignedIntegerValue] + 1;
+    gameScene.shipHealth = [self.userData[@"shipHealth"] doubleValue];
+    gameScene.score = [self.userData[@"score"] unsignedIntegerValue];
+    [self.view presentScene:gameScene transition:[SKTransition doorsCloseHorizontalWithDuration:1.0]];
 }
 
 
