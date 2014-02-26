@@ -728,7 +728,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 {
     SKNode *invader = [self childNodeWithName:kInvaderName];
     SKNode *ship = [self childNodeWithName:kShipName];
-    return !invader && ship && self.score > 0;
+    return !invader && ship && (self.score - self.cumulativeScore) > 0;
 }
 
 
@@ -756,7 +756,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
         if (self.numberOfInvaderRows >= numberOfInvaderRows && winning) {
             // Salto de nivel
             [[NSUserDefaults standardUserDefaults] setInteger:self.numberOfInvaderRows+1 forKey:@"numberOfInvaderRows"];
-            [[NSUserDefaults standardUserDefaults] setInteger:self.score forKey:@"cumulativeStore"];
+            [[NSUserDefaults standardUserDefaults] setInteger:self.score forKey:@"cumulativeScore"];
         }
         [[NSUserDefaults standardUserDefaults] synchronize];
         
