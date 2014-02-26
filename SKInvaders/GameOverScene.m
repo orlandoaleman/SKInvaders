@@ -2,8 +2,6 @@
 //  GameOverScene.m
 //  SpaceInvadersTraditional
 //
-
-
 //
 
 #import "GameOverScene.h"

@@ -22,6 +22,7 @@
     }
 }
 
+
 - (void)createContent
 {
     NSUInteger record = [[NSUserDefaults standardUserDefaults] integerForKey:@"scoreRecord"];

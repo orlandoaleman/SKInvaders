@@ -114,9 +114,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 
 - (id)initWithSize:(CGSize)size
 {
-    if (self = [super initWithSize:size]) {
-        NSLog(@"Scene Size: %@", NSStringFromCGSize(size));
-        
+    if (self = [super initWithSize:size]) {        
         _tapQueue = [NSMutableArray array];
         _contactQueue = [NSMutableArray array];
         
@@ -251,7 +249,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
     SKSpriteNode *ship = [SKSpriteNode spriteNodeWithImageNamed:@"Ship.png"];
 
     ship.name = kShipName;
-    ship.color = [UIColor greenColor];
+    ship.color = [UIColor whiteColor];
     ship.colorBlendFactor = 1.0f;
     ship.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:ship.frame.size];
     ship.physicsBody.dynamic = YES;
@@ -292,7 +290,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 
     switch (bulletType) {
         case ShipFiredBulletType:
-            bullet = [SKSpriteNode spriteNodeWithColor:[SKColor greenColor] size:kBulletSize];
+            bullet = [SKSpriteNode spriteNodeWithColor:[SKColor yellowColor] size:kBulletSize];
             bullet.name = kShipFiredBulletName;
             bullet.physicsBody = [SKPhysicsBody bodyWithRectangleOfSize:bullet.frame.size];
             bullet.physicsBody.dynamic = YES;

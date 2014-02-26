@@ -2,8 +2,6 @@
 //  GameOverScene.h
 //  SKInvaders
 //
-
-
 //
 
 #import <SpriteKit/SpriteKit.h>

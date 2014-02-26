@@ -2,8 +2,6 @@
 //  AppDelegate.m
 //  SKInvaders
 //
-
-
 //
 
 #import "AppDelegate.h"

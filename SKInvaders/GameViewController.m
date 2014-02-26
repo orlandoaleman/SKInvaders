@@ -2,8 +2,6 @@
 //  GameViewController.m
 //  SKInvaders
 //
-
-
 //
 
 #import "GameViewController.h"

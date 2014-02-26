@@ -2,8 +2,6 @@
 //  GameViewController.h
 //  SKInvaders
 //
-
-
 //
 
 #import <UIKit/UIKit.h>
