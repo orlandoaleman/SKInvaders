@@ -20,6 +20,14 @@ typedef enum {
 } InvaderType;
 
 
+
+typedef enum {
+    InvaderStrategyRandom,
+    InvaderStrategyDistance,
+    InvaderStrategyCol
+} InvaderStrategy;
+
+
 typedef enum {
     InvaderMovementDirectionRight,
     InvaderMovementDirectionLeft,
@@ -43,7 +51,9 @@ typedef enum BulletType {
 #define kInvaderRowCount        20
 #define kInvaderColCount        6
 #define kInvaderSpeedReduction  0.9f
+#define kMinTimePerMove         0.1f
 #define kMaxTimePerMove         1.f
+#define kInvaderStrategy        InvaderStrategyCol
 
 #define kShipSize               CGSizeMake(30, 16)
 #define kShipName               @"ship"
@@ -73,16 +83,17 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 
 @interface GameScene ()
 @property BOOL contentCreated;
-@property NSTimeInterval timePerMove;
-@property NSTimeInterval timeOfLastMove;
-@property InvaderMovementDirection invaderMovementDirection;
+@property BOOL gameEnding;
 @property CMMotionManager *motionManager;
 @property NSMutableArray *tapQueue;
 @property NSMutableArray *contactQueue;
+@property NSTimeInterval timePerMove;
+@property NSTimeInterval timeOfLastMove;
+@property InvaderMovementDirection invaderMovementDirection;
+@property NSUInteger burstSize;
+@property InvaderStrategy invaderStrategy;
 @property NSUInteger score;
 @property CGFloat shipHealth;
-@property NSUInteger burstSize;
-@property BOOL gameEnding;
 @end
 
 
@@ -110,6 +121,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
     self.timePerMove = kMaxTimePerMove;
     self.timeOfLastMove = 0.0;
     self.burstSize = kShipBurstCapacity;
+    self.invaderStrategy = kInvaderStrategy;
     
     self.tapQueue = [NSMutableArray array];
     self.contactQueue = [NSMutableArray array];
@@ -415,8 +427,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 - (void)adjustInvaderMovementToTimePerMove:(NSTimeInterval)newTimePerMove
 {
     if (newTimePerMove <= 0) return;
-    if (newTimePerMove <= kMaxTimePerMove) return;
-
+    if (newTimePerMove < kMinTimePerMove) return;
     
     double ratio = self.timePerMove / newTimePerMove;
     self.timePerMove = newTimePerMove;
@@ -486,7 +497,52 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 
 - (NSInteger)indexOfAnInvader:(NSArray *)allInvaders
 {
-    return arc4random_uniform([allInvaders count]);
+    __block NSInteger index = 0;
+    __block SKNode *ship = [self childNodeWithName:kShipName];
+
+    switch (self.invaderStrategy) {
+        case InvaderStrategyRandom:
+            index = arc4random_uniform([allInvaders count]);
+            break;
+
+        case InvaderStrategyCol:
+            {
+                __block CGFloat minDistanceX = CGFLOAT_MAX;
+                __block CGFloat minDistanceY = CGFLOAT_MAX;
+
+                [allInvaders enumerateObjectsUsingBlock:^(SKNode *invader, NSUInteger idx, BOOL *stop) {
+                    CGFloat distanceX = fabs(invader.position.x - ship.position.x);
+                    CGFloat distanceY = fabs(invader.position.y - ship.position.y);
+                    if (distanceX < minDistanceX) {
+                        minDistanceX = distanceX;
+                        minDistanceY = distanceY;
+                        index = idx;
+                    }
+                    else if (distanceX == minDistanceX && distanceY < minDistanceY) {
+                        minDistanceY = distanceY;
+                        index = idx;
+                    }
+                }];
+            }
+            break;
+            
+        case InvaderStrategyDistance:
+        default:
+            {
+                __block CGFloat minDistance = CGFLOAT_MAX;
+
+                [allInvaders enumerateObjectsUsingBlock:^(SKNode *invader, NSUInteger idx, BOOL *stop) {
+                    CGFloat distance = rwLength(rwSub(invader.position, ship.position));
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        index = idx;
+                    }
+                }];
+            }
+            break;
+    }
+
+    return index;
 }
 
 
@@ -571,7 +627,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
         if ([contact.bodyA.node.name isEqualToString:kInvaderName]) {node = contact.bodyA.node; }
         else node = contact.bodyB.node;
 
-        if (CGRectContainsPoint(self.view.frame, node.position)) {            
+        if (CGRectContainsPoint(self.view.frame, node.position)) {
             [self runAction:[SKAction playSoundFileNamed:@"InvaderHit.wav" waitForCompletion:NO]];
             [contact.bodyA.node removeFromParent];
             [contact.bodyB.node removeFromParent];
@@ -613,6 +669,43 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
         [self.view presentScene:gameOverScene transition:[SKTransition doorsOpenHorizontalWithDuration:1.0]];
     }
 }
+
+
+
+#pragma mark - Math helpers
+
+static inline CGPoint rwAdd(CGPoint a, CGPoint b)
+{
+    return CGPointMake(a.x + b.x, a.y + b.y);
+}
+
+
+static inline CGPoint rwSub(CGPoint a, CGPoint b)
+{
+    return CGPointMake(a.x - b.x, a.y - b.y);
+}
+
+
+static inline CGPoint rwMult(CGPoint a, float b)
+{
+    return CGPointMake(a.x * b, a.y * b);
+}
+
+
+static inline float rwLength(CGPoint a)
+{
+    return sqrtf(a.x * a.x + a.y * a.y);
+}
+
+
+// Makes a vector have a length of 1
+static inline CGPoint rwNormalize(CGPoint a)
+{
+    float length = rwLength(a);
+    
+    return CGPointMake(a.x / length, a.y / length);
+}
+
 
 
 @end
