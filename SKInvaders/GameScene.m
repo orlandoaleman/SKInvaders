@@ -24,7 +24,8 @@ typedef enum {
 typedef enum {
     InvaderStrategyRandom,
     InvaderStrategyDistance,
-    InvaderStrategyCol
+    InvaderStrategyCol,
+    InvaderStrategyMotion
 } InvaderStrategy;
 
 
@@ -53,7 +54,7 @@ typedef enum BulletType {
 #define kInvaderSpeedReduction  0.9f
 #define kMinTimePerMove         0.1f
 #define kMaxTimePerMove         1.f
-#define kInvaderStrategy        InvaderStrategyCol
+#define kInvaderStrategy        InvaderStrategyMotion
 
 #define kShipSize               CGSizeMake(30, 16)
 #define kShipName               @"ship"
@@ -499,7 +500,8 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 {
     __block NSInteger index = 0;
     __block SKNode *ship = [self childNodeWithName:kShipName];
-
+    
+    
     switch (self.invaderStrategy) {
         case InvaderStrategyRandom:
             index = arc4random_uniform([allInvaders count]);
@@ -523,6 +525,29 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
                         index = idx;
                     }
                 }];
+            }
+            break;
+            
+        case InvaderStrategyMotion:
+            {
+                __block CGFloat minDistanceX = CGFLOAT_MAX;
+                __block CGFloat minDistanceY = CGFLOAT_MAX;
+                __block CGPoint target = CGPointMake(ship.position.x + ship.physicsBody.velocity.dx, ship.position.y);                
+                
+                [allInvaders enumerateObjectsUsingBlock:^(SKNode *invader, NSUInteger idx, BOOL *stop) {
+                    CGFloat distanceX = fabs(invader.position.x - target.x);
+                    CGFloat distanceY = fabs(invader.position.y - target.y);
+                    if (distanceX < minDistanceX) {
+                        minDistanceX = distanceX;
+                        minDistanceY = distanceY;
+                        index = idx;
+                    }
+                    else if (distanceX == minDistanceX && distanceY < minDistanceY) {
+                        minDistanceY = distanceY;
+                        index = idx;
+                    }
+                }];
+                
             }
             break;
             
