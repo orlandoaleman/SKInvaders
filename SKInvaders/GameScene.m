@@ -241,6 +241,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 {
     SKNode *ship = [self makeShip];
     ship.position = CGPointMake(self.size.width / 2.0f, kShipSize.height / 2.0f);
+    ship.alpha = self.shipHealth;
     [self addChild:ship];
 }
 
