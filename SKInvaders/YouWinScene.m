@@ -24,6 +24,9 @@
 
 - (void)createContent
 {
+    NSUInteger record = [[NSUserDefaults standardUserDefaults] integerForKey:@"scoreRecord"];
+    NSUInteger numberOfInvaderRows = [[NSUserDefaults standardUserDefaults] integerForKey:@"numberOfInvaderRows"];    
+    
     SKLabelNode *youWinLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
     youWinLabel.fontSize = 50;
     youWinLabel.fontColor = [SKColor whiteColor];
@@ -32,17 +35,24 @@
     [self addChild:youWinLabel];
     
     SKLabelNode *scoreLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
-    scoreLabel.fontSize = 18;
+    scoreLabel.fontSize = 16;
     scoreLabel.fontColor = [SKColor whiteColor];
-    scoreLabel.text = [NSString stringWithFormat:@"Score: %05u", [self.userData[@"score"] unsignedIntegerValue]];
+    scoreLabel.text = [NSString stringWithFormat:@"Score %05u", [self.userData[@"score"] unsignedIntegerValue]];
     scoreLabel.position = CGPointMake(self.size.width / 2, youWinLabel.frame.origin.y - youWinLabel.frame.size.height - 10);
     [self addChild:scoreLabel];
+    
+    SKLabelNode *recordLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
+    recordLabel.fontSize = 16;
+    recordLabel.fontColor = [SKColor whiteColor];
+    recordLabel.text = [NSString stringWithFormat:@"Record %05u (L%i)", record, numberOfInvaderRows];
+    recordLabel.position = CGPointMake(self.size.width / 2, scoreLabel.frame.origin.y - scoreLabel.frame.size.height - 10);
+    [self addChild:recordLabel];
 
     SKLabelNode *tapLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
-    tapLabel.fontSize = 25;
+    tapLabel.fontSize = 24;
     tapLabel.fontColor = [SKColor whiteColor];
     tapLabel.text = [NSString stringWithFormat:@"(Tap to Play Level %i)", [self.userData[@"numberOfInvaderRows"] integerValue] + 1];
-    tapLabel.position = CGPointMake(self.size.width / 2, scoreLabel.frame.origin.y - scoreLabel.frame.size.height - 40);
+    tapLabel.position = CGPointMake(self.size.width / 2, recordLabel.frame.origin.y - recordLabel.frame.size.height - 40);
     [self addChild:tapLabel];
 }
 

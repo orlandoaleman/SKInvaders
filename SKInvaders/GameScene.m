@@ -103,7 +103,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 @property InvaderMovementDirection invaderMovementDirection;
 @property NSUInteger burstSize;
 @property InvaderStrategy invaderStrategy;
-@property NSUInteger earlierScore;
+@property NSUInteger cumulativeScore;
 @end
 
 
@@ -140,7 +140,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 {
     if (!self.contentCreated) {
         [self createContent];
-        self.earlierScore = self.score;
+        self.cumulativeScore = self.score;
         self.contentCreated = YES;
 
         self.motionManager = [[CMMotionManager alloc] init];
@@ -271,7 +271,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
 
     scoreLabel.name = kScoreHudName;
     scoreLabel.fontSize = 15;
-    scoreLabel.fontColor = [SKColor greenColor];
+    scoreLabel.fontColor = [SKColor whiteColor];
     scoreLabel.text = [NSString stringWithFormat:kScoreHudText, self.score];
     scoreLabel.position = CGPointMake(20 + scoreLabel.frame.size.width / 2, self.size.height - (20 + scoreLabel.frame.size.height / 2));
     [self addChild:scoreLabel];
@@ -279,7 +279,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
     SKLabelNode *healthLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
     healthLabel.name = kHealthHudName;
     healthLabel.fontSize = 15;
-    healthLabel.fontColor = [SKColor redColor];
+    healthLabel.fontColor = [SKColor whiteColor];
     healthLabel.text = [NSString stringWithFormat:kHealthHudText, self.shipHealth * 100.0f];
     healthLabel.position = CGPointMake(self.size.width - healthLabel.frame.size.width / 2 - 20, self.size.height - (20 + healthLabel.frame.size.height / 2));
     [self addChild:healthLabel];
@@ -743,9 +743,22 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
         SKScene *scene = winning ? [[YouWinScene alloc] initWithSize:self.size] : [[GameOverScene alloc] initWithSize:self.size];
         scene.userData = [NSMutableDictionary dictionary];
         scene.userData[@"score"] = @(self.score);
-        scene.userData[@"earlierScore"] = @(self.earlierScore);
+        scene.userData[@"cumulativeScore"] = @(self.cumulativeScore);
         scene.userData[@"shipHealth"] = @(self.shipHealth);
         scene.userData[@"numberOfInvaderRows"] = @(self.numberOfInvaderRows);
+        
+        NSUInteger record = [[NSUserDefaults standardUserDefaults] integerForKey:@"scoreRecord"];
+        if (self.score > record) {
+            [[NSUserDefaults standardUserDefaults] setInteger:self.score forKey:@"scoreRecord"];
+        }
+        
+        NSUInteger numberOfInvaderRows = [[NSUserDefaults standardUserDefaults] integerForKey:@"numberOfInvaderRows"];        
+        if (self.numberOfInvaderRows >= numberOfInvaderRows && winning) {
+            // Salto de nivel
+            [[NSUserDefaults standardUserDefaults] setInteger:self.numberOfInvaderRows+1 forKey:@"numberOfInvaderRows"];
+            [[NSUserDefaults standardUserDefaults] setInteger:self.score forKey:@"cumulativeStore"];
+        }
+        [[NSUserDefaults standardUserDefaults] synchronize];
         
         [self.view presentScene:scene transition:[SKTransition doorsOpenHorizontalWithDuration:1.0]];
     }

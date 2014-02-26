@@ -26,6 +26,9 @@
 
 - (void)createContent
 {
+    NSUInteger record = [[NSUserDefaults standardUserDefaults] integerForKey:@"scoreRecord"];
+    NSUInteger numberOfInvaderRows = [[NSUserDefaults standardUserDefaults] integerForKey:@"numberOfInvaderRows"];
+    
     SKLabelNode *gameOverLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
     gameOverLabel.fontSize = 50;
     gameOverLabel.fontColor = [SKColor whiteColor];
@@ -34,17 +37,24 @@
     [self addChild:gameOverLabel];
     
     SKLabelNode *scoreLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
-    scoreLabel.fontSize = 18;
+    scoreLabel.fontSize = 16;
     scoreLabel.fontColor = [SKColor whiteColor];
-    scoreLabel.text = [NSString stringWithFormat:@"Score: %05u", [self.userData[@"score"] unsignedIntegerValue]];
+    scoreLabel.text = [NSString stringWithFormat:@"Score %05u", [self.userData[@"score"] unsignedIntegerValue]];
     scoreLabel.position = CGPointMake(self.size.width / 2, gameOverLabel.frame.origin.y - gameOverLabel.frame.size.height - 10);
-    [self addChild:scoreLabel];    
+    [self addChild:scoreLabel];
+    
+    SKLabelNode *recordLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
+    recordLabel.fontSize = 16;
+    recordLabel.fontColor = [SKColor whiteColor];
+    recordLabel.text = [NSString stringWithFormat:@"Record %05u (L%i)", record, numberOfInvaderRows];
+    recordLabel.position = CGPointMake(self.size.width / 2, scoreLabel.frame.origin.y - scoreLabel.frame.size.height - 10);
+    [self addChild:recordLabel];
 
     SKLabelNode *tapLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
     tapLabel.fontSize = 25;
     tapLabel.fontColor = [SKColor whiteColor];
     tapLabel.text = @"(Tap to Play Again)";
-    tapLabel.position = CGPointMake(self.size.width / 2, scoreLabel.frame.origin.y - scoreLabel.frame.size.height - 40);
+    tapLabel.position = CGPointMake(self.size.width / 2, recordLabel.frame.origin.y - recordLabel.frame.size.height - 40);
     [self addChild:tapLabel];
 }
 
@@ -73,7 +83,7 @@
     gameScene.scaleMode = SKSceneScaleModeAspectFill;
     gameScene.numberOfInvaderRows = [self.userData[@"numberOfInvaderRows"] unsignedIntegerValue];
     gameScene.shipHealth = 1.f;
-    gameScene.score = [self.userData[@"earlierScore"] unsignedIntegerValue];
+    gameScene.score = [self.userData[@"cumulativeScore"] unsignedIntegerValue];
     [self.view presentScene:gameScene transition :[SKTransition doorsCloseHorizontalWithDuration:1.0]];
 }
 

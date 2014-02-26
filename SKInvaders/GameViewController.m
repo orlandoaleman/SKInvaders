@@ -33,8 +33,11 @@
     // Create and configure the scene.
     GameScene *scene = [GameScene sceneWithSize:skView.bounds.size];
     scene.scaleMode = SKSceneScaleModeAspectFill;
-    scene.numberOfInvaderRows = 1;
-
+    
+    // Recover state
+    scene.score = [[NSUserDefaults standardUserDefaults] integerForKey:@"cumulativeScore"];
+    scene.numberOfInvaderRows = MAX([[NSUserDefaults standardUserDefaults] integerForKey:@"numberOfInvaderRows"], 1);
+    
     // Present the scene.
     [skView presentScene:scene];
 }
