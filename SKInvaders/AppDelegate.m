@@ -1,8 +1,9 @@
 //
 //  AppDelegate.m
-//  SKInvaders
+//  SpaceInvaders
+//  Orlando Aleman @orlandoaleman
 //
-//
+
 
 #import "AppDelegate.h"
 

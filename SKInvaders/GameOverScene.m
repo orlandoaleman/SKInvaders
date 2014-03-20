@@ -1,8 +1,9 @@
 //
 //  GameOverScene.m
-//  SpaceInvadersTraditional
+//  SpaceInvaders
+//  Orlando Aleman @orlandoaleman
 //
-//
+
 
 #import "GameOverScene.h"
 #import "GameScene.h"
@@ -10,6 +11,8 @@
 @interface GameOverScene ()
 @property BOOL contentCreated;
 @end
+
+
 
 @implementation GameOverScene
 
@@ -37,14 +40,14 @@
     SKLabelNode *scoreLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
     scoreLabel.fontSize = 16;
     scoreLabel.fontColor = [SKColor whiteColor];
-    scoreLabel.text = [NSString stringWithFormat:@"Score %05u", [self.userData[@"score"] unsignedIntegerValue]];
+    scoreLabel.text = [NSString stringWithFormat:@"Score %05lu", [self.userData[@"score"] unsignedIntegerValue]];
     scoreLabel.position = CGPointMake(self.size.width / 2, gameOverLabel.frame.origin.y - gameOverLabel.frame.size.height - 10);
     [self addChild:scoreLabel];
     
     SKLabelNode *recordLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
     recordLabel.fontSize = 16;
     recordLabel.fontColor = [SKColor whiteColor];
-    recordLabel.text = [NSString stringWithFormat:@"Record %05u (L%i)", record, numberOfInvaderRows];
+    recordLabel.text = [NSString stringWithFormat:@"Record %05lu (L%lu)", record, numberOfInvaderRows];
     recordLabel.position = CGPointMake(self.size.width / 2, scoreLabel.frame.origin.y - scoreLabel.frame.size.height - 10);
     [self addChild:recordLabel];
 

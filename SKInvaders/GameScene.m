@@ -1,8 +1,7 @@
 //
 //  GameScene.m
-//  SKInvaders
-//
-
+//  SpaceInvaders
+//  Orlando Aleman @orlandoaleman
 //
 
 #import "GameScene.h"
@@ -52,7 +51,7 @@ typedef enum BulletType {
 #define kInvaderGridSpacing             CGSizeMake(12, 12)
 #define kInvaderRowCountDefault         6
 #define kInvaderColCount                6
-#define kInvaderMinTimePerMove          0.1f
+#define kInvaderMinTimePerMove          0.5f
 #define kInvaderMaxTimePerMove          1.f
 #define kInvaderReductionOfTime         0.9f
 #define kInvaderMinBulletTime           1.0f
@@ -75,7 +74,7 @@ typedef enum BulletType {
 #define kScoreHudName                   @"scoreHud"
 #define kHealthHudName                  @"healthHud"
 #define kHealthHudText                  @"Health: %.1f%%"
-#define kScoreHudText                   @"Score: %05u"
+#define kScoreHudText                   @"Score: %05lu"
 
 
 #define kMinInvaderBottomHeight 2*kShipSize.height // defines the height at which the invaders are considered to have invaded Earth
@@ -533,7 +532,7 @@ static const u_int32_t kInvaderFiredBulletCategory = 0x1 << 4;
     
     switch (self.invaderStrategy) {
         case InvaderStrategyRandom:
-            index = arc4random_uniform([allInvaders count]);
+            index = arc4random_uniform((int)[allInvaders count]);
             break;
 
         case InvaderStrategyCol:

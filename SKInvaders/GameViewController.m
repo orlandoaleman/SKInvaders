@@ -1,13 +1,16 @@
 //
 //  GameViewController.m
-//  SKInvaders
+//  SpaceInvaders
+//  Orlando Aleman @orlandoaleman
 //
-//
+
 
 #import "GameViewController.h"
 #import "GameScene.h"
 
+
 @implementation GameViewController
+
 
 - (void)dealloc
 {

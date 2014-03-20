@@ -1,7 +1,7 @@
 //
 //  GameViewController.h
-//  SKInvaders
-//
+//  SpaceInvaders
+//  Orlando Aleman @orlandoaleman
 //
 
 #import <UIKit/UIKit.h>

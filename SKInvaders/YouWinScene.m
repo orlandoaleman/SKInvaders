@@ -1,8 +1,9 @@
 //
 //  YouWinScene
-//  SpaceInvadersTraditional
+//  SpaceInvaders
+//  Orlando Aleman @orlandoaleman
 //
-//
+
 
 #import "YouWinScene.h"
 #import "GameScene.h"
@@ -11,6 +12,7 @@
 @interface YouWinScene ()
 @property BOOL contentCreated;
 @end
+
 
 @implementation YouWinScene
 
@@ -38,21 +40,21 @@
     SKLabelNode *scoreLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
     scoreLabel.fontSize = 16;
     scoreLabel.fontColor = [SKColor whiteColor];
-    scoreLabel.text = [NSString stringWithFormat:@"Score %05u", [self.userData[@"score"] unsignedIntegerValue]];
+    scoreLabel.text = [NSString stringWithFormat:@"Score %05lu", [self.userData[@"score"] unsignedIntegerValue]];
     scoreLabel.position = CGPointMake(self.size.width / 2, youWinLabel.frame.origin.y - youWinLabel.frame.size.height - 10);
     [self addChild:scoreLabel];
     
     SKLabelNode *recordLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
     recordLabel.fontSize = 16;
     recordLabel.fontColor = [SKColor whiteColor];
-    recordLabel.text = [NSString stringWithFormat:@"Record %05u (L%i)", record, numberOfInvaderRows];
+    recordLabel.text = [NSString stringWithFormat:@"Record %05lu (L%lu)", record, numberOfInvaderRows];
     recordLabel.position = CGPointMake(self.size.width / 2, scoreLabel.frame.origin.y - scoreLabel.frame.size.height - 10);
     [self addChild:recordLabel];
 
     SKLabelNode *tapLabel = [SKLabelNode labelNodeWithFontNamed:@"Courier"];
     tapLabel.fontSize = 24;
     tapLabel.fontColor = [SKColor whiteColor];
-    tapLabel.text = [NSString stringWithFormat:@"(Tap to Play Level %i)", [self.userData[@"numberOfInvaderRows"] integerValue] + 1];
+    tapLabel.text = [NSString stringWithFormat:@"(Tap to Play Level %li)", [self.userData[@"numberOfInvaderRows"] integerValue] + 1];
     tapLabel.position = CGPointMake(self.size.width / 2, recordLabel.frame.origin.y - recordLabel.frame.size.height - 40);
     [self addChild:tapLabel];
 }

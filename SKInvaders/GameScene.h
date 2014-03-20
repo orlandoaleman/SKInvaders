@@ -1,7 +1,7 @@
 //
 //  GameScene.h
-//  SKInvaders
-//
+//  SpaceInvaders
+//  Orlando Aleman @orlandoaleman
 //
 
 #import <SpriteKit/SpriteKit.h>
